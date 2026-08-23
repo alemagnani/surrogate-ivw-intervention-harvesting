@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the CIKM 2026 paper below."
+title: "Surrogate Inverse-Variance Weighting for Intervention Harvesting on Heavy-Tailed Click Logs"
+type: software
+authors:
+  - family-names: Magnani
+    given-names: Alessandro
+    orcid: "https://orcid.org/0000-0003-0345-9629"
+    affiliation: Coupang
+  - family-names: Xie
+    given-names: Min
+    affiliation: Coupang
+repository-code: "https://github.com/alemagnani/surrogate-ivw-intervention-harvesting"
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "Surrogate Inverse-Variance Weighting for Intervention Harvesting on Heavy-Tailed Click Logs"
+  authors:
+    - family-names: Magnani
+      given-names: Alessandro
+      orcid: "https://orcid.org/0000-0003-0345-9629"
+      affiliation: Coupang
+    - family-names: Xie
+      given-names: Min
+      affiliation: Coupang
+  collection-title: "Proceedings of the 35th ACM International Conference on Information and Knowledge Management (CIKM '26)"
+  conference:
+    name: "CIKM '26"
+    city: Rome
+    country: IT
+  year: 2026
+  publisher:
+    name: "ACM"

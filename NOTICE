@@ -1,0 +1,27 @@
+ivw-harvesting
+Surrogate Inverse-Variance Weighting for Intervention Harvesting
+Copyright (c) 2026 Alessandro Magnani, Min Xie
+
+This project is released under the MIT License (see LICENSE).
+
+--------------------------------------------------------------------------------
+Attribution
+--------------------------------------------------------------------------------
+
+The estimator and intervention-set construction code in this repository is
+derived from the ULTR-bias-toolkit by Philipp Hager
+(https://github.com/philipphager/ultr-bias-toolkit), an open-source project for
+bias estimation in unbiased learning to rank. The AdjacentChain, AllPairs, and
+Pivot estimators and the intervention-set builder originate from that toolkit
+and have been adapted and extended here with the count-only surrogate
+inverse-variance (min and harmonic) weighting schemes introduced in the paper.
+
+The intervention-harvesting methodology and the original (uniform) weighting
+baseline are due to:
+
+    Aman Agarwal, Ivan Zaitsev, Xuanhui Wang, Cheng Li, Marc Najork, and
+    Thorsten Joachims. "Estimating Position Bias without Intrusive
+    Interventions." WSDM 2019.
+
+Please cite both the original toolkit / method and the CIKM 2026 paper (see
+CITATION.cff) when using this software.

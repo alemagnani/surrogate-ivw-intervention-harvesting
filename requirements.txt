@@ -1,0 +1,8 @@
+numpy
+pandas
+tqdm
+
+# For running the experiments (experiments/):
+#   matplotlib
+#   scikit-learn
+#   torch

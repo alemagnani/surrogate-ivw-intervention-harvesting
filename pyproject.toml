@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ivw-harvesting"
+version = "1.0.0"
+description = "Surrogate inverse-variance (count-only) weighting for intervention-harvesting position-bias estimation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Alessandro Magnani", email = "ale.magnani@gmail.com" },
+    { name = "Min Xie" },
+]
+keywords = [
+    "unbiased-learning-to-rank",
+    "position-bias",
+    "intervention-harvesting",
+    "inverse-variance-weighting",
+    "click-models",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+experiments = ["matplotlib", "scikit-learn", "torch"]
+dev = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/alemagnani/surrogate-ivw-intervention-harvesting"
+Repository = "https://github.com/alemagnani/surrogate-ivw-intervention-harvesting"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
