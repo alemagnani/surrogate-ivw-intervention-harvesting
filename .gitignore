@@ -32,3 +32,7 @@ data/
 .DS_Store
 .idea/
 .vscode/
+
+# Track the published paper + supplement PDFs (override *.pdf above)
+!paper/cikm_short.pdf
+!supplement/supplement.pdf

@@ -23,6 +23,7 @@ preferred-citation:
     - family-names: Xie
       given-names: Min
       affiliation: Coupang
+  doi: "10.1145/3799682.3839883"
   collection-title: "Proceedings of the 35th ACM International Conference on Information and Knowledge Management (CIKM '26)"
   conference:
     name: "CIKM '26"

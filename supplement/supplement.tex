@@ -1,0 +1,634 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{microtype}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+\usepackage{url}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+
+\title{Supplementary Material for:\\
+Surrogate Inverse-Variance Weighting for Intervention Harvesting
+on Heavy-Tailed Click Logs}
+\author{Alessandro Magnani (Coupang) \and Min Xie (Coupang)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Scope of this document.}
+This document supplements the CIKM 2026 short paper of the same title.
+Theorem numbers referenced here correspond to the main paper as follows:
+Proposition~\ref{sup:prop:delta} below is the \emph{conditional
+delta-method variance} (Prop.~``delta'', \texttt{prop:delta});
+Theorem~\ref{sup:thm:ivw} is \emph{count-only IVW on the surrogate}
+(Thm.~``IVW'', \texttt{thm:ivw}); Theorem~\ref{sup:thm:cs} is the
+\emph{Cauchy--Schwarz surrogate guarantee} (Thm.~``CS'',
+\texttt{thm:cs}); and Theorem~\ref{sup:thm:asym} is the
+\emph{exact asymmetric oracle} (Thm.~``asym'', \texttt{thm:asym}).
+We restate each statement and give the complete proof, then collect the
+additional sensitivity analyses that the short paper defers here.
+Full runnable code, unit tests, and the data-processing pipelines that
+reproduce every number below are available at
+\url{https://github.com/alemagnani/surrogate-ivw-intervention-harvesting}.
+
+\paragraph{Notation.}
+We match the short paper exactly. $q$ is a query, $d$ a document/ad,
+$k$ and $k'$ result positions, and $i$ indexes the $(q,d)$ cells in the
+interventional set (the pairs that appeared at both $k$ and $k'$). Under
+the Position-Based Model (PBM),
+$P(\mathrm{click}\mid q,d,k)=p_k\,r_{q,d}$ with $p_k\in(0,1]$ the
+position-$k$ examination probability and $r_{q,d}=r_i\in[0,1]$ the
+per-cell relevance; the true per-cell click probability is
+$\theta_k^i=p_k r_i$. We observe $N_k^i$ impressions and $C_k^i$ clicks
+for cell $i$ at position $k$, with empirical rate
+$\hat\theta_k^i=C_k^i/N_k^i$. The target is the position-bias ratio
+$R_{k,k'}=p_k/p_{k'}$. Per-cell weights are $\omega_i\ge 0$ and depend
+only on the counts, $\omega_i=\omega(N_k^i,N_{k'}^i)$. Write
+\[
+\hat R_{k,k'}=\frac{A}{B}
+=\frac{\sum_i\omega_i\,\hat\theta_k^i}{\sum_i\omega_i\,\hat\theta_{k'}^i},
+\qquad
+V_r(\omega)=\frac{\sum_i\omega_i^2/N_r^i}{\bigl(\sum_i\omega_i\bigr)^2},
+\]
+$\alpha=(1-p_k)/p_k$, $\beta=(1-p_{k'})/p_{k'}$, and the harmonic
+weight $\omega_i^h=N_k^iN_{k'}^i/(N_k^i+N_{k'}^i)$. Throughout, the sum
+$\sum_i$ runs over the $n$ cells of the interventional set, all of which
+have $N_k^i,N_{k'}^i\ge 1$.
+
+\section{Complete Proofs}
+\label{sec:proofs}
+
+\subsection{Conditional delta-method variance}
+
+\begin{proposition}[Conditional delta-method variance; Prop.~delta]
+\label{sup:prop:delta}
+Given the vector of impression counts $\mathbf N=\{N_k^i,N_{k'}^i\}$,
+the delta method gives
+\[
+\mathrm{Var}(\hat R_{k,k'}\mid\mathbf N)
+\;\approx\;
+R_{k,k'}^2\bigl[\alpha\,V_k(\omega)+\beta\,V_{k'}(\omega)\bigr],
+\]
+with $V_r(\omega)=\sum_i\omega_i^2/N_r^i/(\sum_i\omega_i)^2$,
+$\alpha=(1-p_k)/p_k$, and $\beta=(1-p_{k'})/p_{k'}$.
+\end{proposition}
+
+\begin{proof}
+Condition on the counts $\mathbf N$ throughout; all expectations and
+variances below are conditional on $\mathbf N$. Under PBM,
+$C_r^i\mid\mathbf N\sim\mathrm{Binomial}(N_r^i,\theta_r^i)$ with
+$\theta_r^i=p_r r_i$, independently across cells $i$ and across the two
+positions $r\in\{k,k'\}$ (clicks at distinct impressions are independent
+Bernoulli draws). Hence
+\[
+\mathbb E[\hat\theta_r^i\mid\mathbf N]=\theta_r^i,
+\qquad
+\mathrm{Var}(\hat\theta_r^i\mid\mathbf N)
+=\frac{\theta_r^i(1-\theta_r^i)}{N_r^i}.
+\]
+Write $A=\sum_i\omega_i\hat\theta_k^i$ and
+$B=\sum_i\omega_i\hat\theta_{k'}^i$, with conditional means
+$\bar A=\sum_i\omega_i\theta_k^i$ and $\bar B=\sum_i\omega_i\theta_{k'}^i$.
+Because $A$ and $B$ are sums of independent terms and the weights are
+$\mathbf N$-measurable,
+\begin{align}
+\mathrm{Var}(A\mid\mathbf N)
+&=\sum_i\omega_i^2\,\frac{\theta_k^i(1-\theta_k^i)}{N_k^i},
+\label{eq:varA}\\
+\mathrm{Var}(B\mid\mathbf N)
+&=\sum_i\omega_i^2\,\frac{\theta_{k'}^i(1-\theta_{k'}^i)}{N_{k'}^i}.
+\label{eq:varB}
+\end{align}
+Clicks at position $k$ and at position $k'$ are conditionally
+independent given the counts, so $\mathrm{Cov}(A,B\mid\mathbf N)=0$.
+The first-order delta expansion of $g(A,B)=A/B$ about $(\bar A,\bar B)$
+gives $\partial g/\partial A=1/\bar B$ and
+$\partial g/\partial B=-\bar A/\bar B^2$, whence
+\[
+\mathrm{Var}\!\Bigl(\tfrac{A}{B}\,\Big|\,\mathbf N\Bigr)
+\approx
+\frac{\mathrm{Var}(A\mid\mathbf N)}{\bar B^2}
++\frac{\bar A^2}{\bar B^4}\,\mathrm{Var}(B\mid\mathbf N)
+=\Bigl(\tfrac{\bar A}{\bar B}\Bigr)^2
+\!\left[\frac{\mathrm{Var}(A\mid\mathbf N)}{\bar A^2}
++\frac{\mathrm{Var}(B\mid\mathbf N)}{\bar B^2}\right].
+\tag{$\ast$}
+\]
+Under PBM the ratio of conditional means is exactly the estimand:
+$\bar A/\bar B=(p_k\sum_i\omega_i r_i)/(p_{k'}\sum_i\omega_i r_i)
+=p_k/p_{k'}=R_{k,k'}$, so the prefactor is $R_{k,k'}^2$.
+
+It remains to reduce the bracket to $\alpha V_k+\beta V_{k'}$. Adopt the
+relevance-agnostic surrogate that drops the $r_i$-dependent factor from
+the cell-level variance, replacing $\theta_r^i(1-\theta_r^i)$ by the
+common position-level factor $\theta_r^i/N_r^i\cdot(\dots)$; concretely,
+using $\theta_r^i=p_r r_i$ and factoring $r_i$ out of both
+$\mathrm{Var}(A\mid\mathbf N)/\bar A^2$ and the mean, the leading term of
+$\mathrm{Var}(A\mid\mathbf N)/\bar A^2$ is
+\[
+\frac{\sum_i\omega_i^2\,\theta_k^i(1-\theta_k^i)/N_k^i}{\bigl(\sum_i\omega_i\theta_k^i\bigr)^2}
+\;\xrightarrow[\text{surrogate}]{}\;
+\frac{1-p_k}{p_k}\cdot
+\frac{\sum_i\omega_i^2/N_k^i}{\bigl(\sum_i\omega_i\bigr)^2}
+=\alpha\,V_k(\omega),
+\]
+obtained by writing $\theta_k^i(1-\theta_k^i)=p_kr_i(1-p_kr_i)$,
+approximating $1-p_kr_i\approx 1-p_k$ (equivalently, treating $r_i$ as a
+common factor across cells, which is exact when $r_i$ is constant) and
+cancelling the common $p_k r_i$ between numerator and the squared mean.
+The identical reduction at position $k'$ gives $\beta\,V_{k'}(\omega)$.
+Substituting into $(\ast)$ yields
+$\mathrm{Var}(\hat R_{k,k'}\mid\mathbf N)\approx
+R_{k,k'}^2[\alpha V_k(\omega)+\beta V_{k'}(\omega)]$.
+The exact (non-surrogate) bracket, retaining the $r_i$-dependent factors,
+is Eq.~(3) of the short paper ($\widetilde V$); the delta step
+$(\ast)$ and the conditional independence used there are identical.
+\end{proof}
+
+\begin{remark}
+The factors $\alpha=(1-p_k)/p_k$ and $\beta=(1-p_{k'})/p_{k'}$ are the
+per-position binomial overdispersion terms. Because $p_k$ is larger for
+higher (more examined) positions, $\alpha$ is smaller near the top of the
+ranking. When $p_k\approx p_{k'}$ (smooth position-bias decay across
+adjacent positions) we have $\alpha\approx\beta$, and the conditional
+variance collapses to $\alpha\,[V_k(\omega)+V_{k'}(\omega)]$: the
+\emph{symmetric surrogate} of Theorems~\ref{sup:thm:ivw}
+and~\ref{sup:thm:cs}.
+\end{remark}
+
+\subsection{Count-only IVW optimum on the symmetric surrogate}
+
+\begin{theorem}[Count-only IVW on the surrogate; Thm.~IVW]
+\label{sup:thm:ivw}
+Among all non-negative weights $\omega_i=\omega(N_k^i,N_{k'}^i)$,
+harmonic weighting minimises the count-only delta-method variance
+surrogate $V_k(\omega)+V_{k'}(\omega)$, and
+\[
+\min_{\omega\ge 0}\bigl[V_k(\omega)+V_{k'}(\omega)\bigr]
+=\Bigl(\sum_i\omega_i^h\Bigr)^{-1}.
+\]
+\end{theorem}
+
+\begin{proof}
+Combine the two positions into a single quadratic form. With
+$a_i:=1/N_k^i+1/N_{k'}^i>0$,
+\[
+V_k(\omega)+V_{k'}(\omega)
+=\frac{\sum_i\omega_i^2\,(1/N_k^i+1/N_{k'}^i)}{\bigl(\sum_i\omega_i\bigr)^2}
+=\frac{\sum_i a_i\omega_i^2}{\bigl(\sum_i\omega_i\bigr)^2}.
+\]
+Set $u_i=\omega_i\sqrt{a_i}$ and $v_i=1/\sqrt{a_i}$, so that
+$\sum_i\omega_i=\sum_i u_i v_i$ and $\sum_i a_i\omega_i^2=\sum_i u_i^2$.
+The Cauchy--Schwarz inequality
+$\bigl(\sum_i u_i v_i\bigr)^2\le\bigl(\sum_i u_i^2\bigr)\bigl(\sum_i v_i^2\bigr)$
+gives
+\[
+V_k(\omega)+V_{k'}(\omega)
+=\frac{\sum_i u_i^2}{\bigl(\sum_i u_i v_i\bigr)^2}
+\;\ge\;\frac{1}{\sum_i v_i^2}
+=\frac{1}{\sum_i 1/a_i},
+\]
+with equality iff $u_i\propto v_i$, i.e. $\omega_i\propto 1/a_i$.
+Now
+\[
+\frac{1}{a_i}=\frac{1}{1/N_k^i+1/N_{k'}^i}
+=\frac{N_k^iN_{k'}^i}{N_k^i+N_{k'}^i}=\omega_i^h,
+\]
+so the minimiser is $\omega_i\propto\omega_i^h$, harmonic weighting.
+The estimator $\hat R_{k,k'}=A/B$ is invariant to a common positive
+scaling of the weights, so any $\omega_i\propto\omega_i^h$ produces the
+same estimator; harmonic is therefore \emph{the} count-only optimum.
+Finally the minimum value equals $1/\sum_i(1/a_i)=1/\sum_i\omega_i^h$,
+which also matches the collapsed left-hand side used in
+Theorem~\ref{sup:thm:cs}.
+\end{proof}
+
+\subsection{Cauchy--Schwarz surrogate guarantee (unconditional in counts)}
+
+\begin{theorem}[Surrogate guarantee, unconditional in counts; Thm.~CS]
+\label{sup:thm:cs}
+For any impression counts $\{N_k^i,N_{k'}^i\}_{i=1}^n$,
+\[
+V_k(\omega^h)+V_{k'}(\omega^h)\;\le\;V_k(\mathbf 1)+V_{k'}(\mathbf 1),
+\]
+i.e. harmonic weighting never increases the symmetric surrogate relative
+to uniform ($\omega_i\equiv 1$). Equality holds iff $N_k^i/N_{k'}^i$ is
+constant across all cells $i$.
+\end{theorem}
+
+\begin{proof}
+The key algebraic identity is that the harmonic weight is precisely the
+reciprocal of the per-cell coefficient $a_i=1/N_k^i+1/N_{k'}^i$:
+\[
+(\omega_i^h)^2\Bigl(\frac{1}{N_k^i}+\frac{1}{N_{k'}^i}\Bigr)
+=(\omega_i^h)^2\cdot\frac{N_k^i+N_{k'}^i}{N_k^iN_{k'}^i}
+=(\omega_i^h)^2\cdot\frac{1}{\omega_i^h}
+=\omega_i^h .
+\tag{collapse}
+\]
+Substituting $\omega=\omega^h$ into the left-hand side and writing
+$W=\sum_i\omega_i^h$,
+\[
+V_k(\omega^h)+V_{k'}(\omega^h)
+=\frac{\sum_i(\omega_i^h)^2\,(1/N_k^i+1/N_{k'}^i)}{W^2}
+=\frac{\sum_i\omega_i^h}{W^2}
+=\frac{W}{W^2}=\frac{1}{W}.
+\]
+For the uniform weights $\omega_i\equiv 1$ (so $\sum_i\omega_i=n$),
+\[
+V_k(\mathbf 1)+V_{k'}(\mathbf 1)
+=\frac{1}{n^2}\sum_i\Bigl(\frac{1}{N_k^i}+\frac{1}{N_{k'}^i}\Bigr)
+=\frac{1}{n^2}\sum_i\frac{1}{\omega_i^h},
+\]
+using $1/N_k^i+1/N_{k'}^i=1/\omega_i^h$ again. Apply Cauchy--Schwarz to
+the vectors $(\sqrt{\omega_i^h})_i$ and $(1/\sqrt{\omega_i^h})_i$:
+\[
+n^2=\Bigl(\sum_i\sqrt{\omega_i^h}\cdot\tfrac{1}{\sqrt{\omega_i^h}}\Bigr)^2
+\le\Bigl(\sum_i\omega_i^h\Bigr)\Bigl(\sum_i\frac{1}{\omega_i^h}\Bigr)
+=W\sum_i\frac{1}{\omega_i^h}.
+\]
+Dividing by $n^2 W$ gives
+$\dfrac{1}{W}\le\dfrac{1}{n^2}\sum_i\dfrac{1}{\omega_i^h}$, i.e.
+$V_k(\omega^h)+V_{k'}(\omega^h)\le V_k(\mathbf 1)+V_{k'}(\mathbf 1)$.
+Cauchy--Schwarz holds with equality iff the two vectors are
+proportional, i.e. $\omega_i^h$ is constant across $i$; since
+$\omega_i^h=N_k^i/(1+N_k^i/N_{k'}^i)$ and the estimator is
+scale-invariant, this reduces (up to the overall scale that cancels) to
+$N_k^i/N_{k'}^i$ being constant across cells, the ``no
+count-heterogeneity'' case in which harmonic coincides with uniform.
+\end{proof}
+
+\begin{remark}[From the surrogate to $\mathrm{Var}(\hat R\mid\mathbf N)$]
+Theorem~\ref{sup:thm:cs} is unconditional in the counts but conditional
+on $V_k+V_{k'}$ being the objective. Via
+Proposition~\ref{sup:prop:delta} it implies a reduction in
+$\mathrm{Var}(\hat R\mid\mathbf N)$ whenever $\alpha\approx\beta$. For
+the asymmetric objective $\alpha V_k+\beta V_{k'}$ the same substitution
+gives only an empirical bound in general (the unconditional analogue can
+fail; see \S\ref{sec:asym-counterexample}), but on the full KDD log the
+asymmetric reduction ($79.0\%$) essentially matches the symmetric one
+($79.3\%$).
+\end{remark}
+
+\subsection{Exact asymmetric oracle}
+
+\begin{theorem}[Exact asymmetric oracle; Thm.~asym]
+\label{sup:thm:asym}
+Fix any counts $\{N_k^i,N_{k'}^i\}$ and any $\alpha,\beta>0$, and set
+$s_i=\alpha/N_k^i+\beta/N_{k'}^i>0$. Then for all non-negative weights
+$\omega$,
+\[
+\alpha\,V_k(\omega)+\beta\,V_{k'}(\omega)
+\;\ge\;\Bigl(\sum_i s_i^{-1}\Bigr)^{-1},
+\]
+with equality iff
+$\omega_i\propto\omega_i^\star:=1/s_i
+=N_k^iN_{k'}^i/(\alpha N_{k'}^i+\beta N_k^i)$. The symmetric harmonic
+weight is the special case $\alpha=\beta$.
+\end{theorem}
+
+\begin{proof}
+Collect the two positions into a single quadratic form with the
+asymmetric coefficient $s_i$:
+\[
+\alpha V_k(\omega)+\beta V_{k'}(\omega)
+=\frac{\sum_i\omega_i^2\,(\alpha/N_k^i+\beta/N_{k'}^i)}
+      {\bigl(\sum_i\omega_i\bigr)^2}
+=\frac{\sum_i s_i\,\omega_i^2}{\bigl(\sum_i\omega_i\bigr)^2}.
+\]
+Apply Cauchy--Schwarz to the vectors
+$(\sqrt{s_i}\,\omega_i)_i$ and $(1/\sqrt{s_i})_i$:
+\[
+\Bigl(\sum_i\omega_i\Bigr)^2
+=\Bigl(\sum_i\sqrt{s_i}\,\omega_i\cdot\tfrac{1}{\sqrt{s_i}}\Bigr)^2
+\le\Bigl(\sum_i s_i\omega_i^2\Bigr)\Bigl(\sum_i\frac{1}{s_i}\Bigr).
+\]
+Rearranging,
+\[
+\frac{\sum_i s_i\omega_i^2}{\bigl(\sum_i\omega_i\bigr)^2}
+\ge\frac{1}{\sum_i 1/s_i}
+=\Bigl(\sum_i s_i^{-1}\Bigr)^{-1},
+\]
+with equality iff $\sqrt{s_i}\,\omega_i\propto 1/\sqrt{s_i}$, i.e.
+$\omega_i\propto 1/s_i$. Computing the reciprocal,
+\[
+\frac{1}{s_i}=\frac{1}{\alpha/N_k^i+\beta/N_{k'}^i}
+=\frac{N_k^iN_{k'}^i}{\alpha N_{k'}^i+\beta N_k^i}
+=\omega_i^\star,
+\]
+which is the claimed minimiser. When $\alpha=\beta$,
+$s_i=\alpha(1/N_k^i+1/N_{k'}^i)$, so
+$1/s_i\propto N_k^iN_{k'}^i/(N_k^i+N_{k'}^i)=\omega_i^h$: the oracle
+reduces to harmonic weighting.
+\end{proof}
+
+\begin{corollary}[Oracle unconditionally beats uniform]
+\label{sup:cor:beats}
+For all counts and all $\alpha,\beta>0$,
+$\alpha V_k(\omega^\star)+\beta V_{k'}(\omega^\star)
+\le\alpha V_k(\mathbf 1)+\beta V_{k'}(\mathbf 1)$.
+\end{corollary}
+\begin{proof}
+The uniform value is
+$\alpha V_k(\mathbf 1)+\beta V_{k'}(\mathbf 1)
+=(1/n^2)\sum_i s_i$. Cauchy--Schwarz gives
+$n^2\le(\sum_i s_i)(\sum_i 1/s_i)$, hence
+$(1/n^2)\sum_i s_i\ge(\sum_i 1/s_i)^{-1}
+=\alpha V_k(\omega^\star)+\beta V_{k'}(\omega^\star)$ by
+Theorem~\ref{sup:thm:asym}.
+\end{proof}
+
+\begin{remark}[Why the oracle is not deployable, and harmonic is]
+$\omega_i^\star$ depends on the unknown propensities through
+$(\alpha,\beta)$, so it cannot be computed from counts alone. Harmonic
+weighting is the parameter-free choice: exact at $\alpha=\beta$
+(Theorem~\ref{sup:thm:asym}), with an unconditional symmetric guarantee
+for all propensity values (Theorem~\ref{sup:thm:cs}). Empirically,
+substituting the true simulation propensities into $\omega_i^\star$
+yields variance within $\pm2\%$ of harmonic across all tested
+configurations, and a two-stage plug-in oracle
+($\hat\alpha,\hat\beta$ from a preliminary harmonic fit) matches
+harmonic and the true-propensity oracle to within $0.4\%$
+(\S\ref{sec:plugin-oracle}). The exact $\theta$-aware oracle that plugs
+in per-cell $\hat r_i$ is a different object: on heavy-tailed logs it
+collapses (ARE $0.002$) because $\hat r_i$ is unusable on the
+singleton mass, which is why the count-only surrogate is the robust
+choice.
+\end{remark}
+
+\section{Additional Sensitivity Analyses}
+\label{sec:sensitivity}
+
+All numbers in this section are computed by the public repository. Where
+a specific figure is a deterministic functional of the observed KDD
+counts (variance surrogates, ARE, ESS, capping) it is reproducible
+exactly; where it depends on Monte-Carlo resampling (bootstrap CIs,
+trial-averaged MSE) we report the seed-controlled values used in the
+paper.
+
+\subsection{Weight-capping robustness (ARE vs percentile cap)}
+\label{sec:capping}
+
+The harmonic weight concentrates mass on a small set of high-count
+cells: on the full KDD $(1,2)$ interventional set (4.61M pairs) the
+harmonic effective sample size is only ESS $=1{,}849$
+($\mathrm{ESS}(\omega)=(\sum_i\omega_i)^2/\sum_i\omega_i^2$). This
+concentration is exactly what produces the surrogate-$\widetilde V$
+reduction, and the natural robustness probe is to cap the largest
+weights. Capping $\omega_i^h$ at a percentile threshold and recomputing
+the plug-in ARE against uniform gives Table~\ref{tab:cap}.
+
+\begin{table}[h]
+\centering
+\caption{Weight-capping robustness on full KDD $(1,2)$. Capping
+$\omega_i^h$ at the given percentile lifts ESS toward the uniform value
+but retains a clear ARE advantage over uniform at every level. The
+$99$th-percentile cap shifts the estimand ($\hat R:1.71\to1.61$),
+consistent with the precision/estimand trade-off in the main paper.}
+\label{tab:cap}
+\begin{tabular}{lrrr}
+\toprule
+Cap level & threshold / \# capped & ESS & ARE(harmonic,uniform) \\
+\midrule
+None (harmonic)      & --                       & $1{,}849$          & $4.53$ \\
+$99.99$th pct        & $2{,}079$ / $462$ pairs   & $5.2\times10^{4}$  & $4.12$ \\
+$99$th pct           & --                       & $7.6\times10^{5}$  & $2.83$ \\
+$90$th pct           & --                       & --                 & $1.86$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Harmonic beats uniform robustly across all capping levels; the advantage
+degrades gracefully as the cap forces the weights toward uniform. This
+directly addresses the concern that the estimate ``rests on
+$\sim\!1{,}800$ cells'': even after redistributing weight away from the
+top $10\%$ of cells, harmonic retains ARE $1.86$.
+
+\subsection{Per-query impression-distribution diagnostic}
+\label{sec:perquery}
+
+The main paper states that per-cell counts on the full KDD log are
+extremely heavy-tailed and points here for the underlying
+per-query/per-pair impression-distribution diagnostic. Concretely, on
+the full KDD Cup 2012 Track 2 release (235.6M impressions, 63.8M unique
+$(q,\mathrm{ad},\mathrm{pos})$ cells; $(1,2)$ interventional set of
+4.61M $(q,\mathrm{ad})$ pairs, 132.3M impressions):
+
+\begin{itemize}
+\item \textbf{Head concentration.} The pair-size distribution has median
+$N_1+N_2=4$ and maximum $2.47$M; $60.7\%$ of pairs have $N_1+N_2\le 5$,
+while $0.1\%$ of pairs carry $42\%$ of all impressions. The maximum
+per-pair imbalance $N_1/N_2$ reaches $66{,}330\!:\!1$.
+\item \textbf{Imbalance shape.} Only $\sim\!65\%$ of $(q,\mathrm{ad})$
+items have $N_1/N_2\in[0.5,2.0]$ and $\sim\!3$--$5\%$ exceed ratio $10$
+---the heavy-tailed regime the anchor-item synthetic model targets.
+\item \textbf{Contrast with deduplicated public logs.} The released
+Baidu-ULTR aggregation has $94.1\%$ of $(q,d,\mathrm{pos})$ cells at
+$N=1$, $98.7\%$ at $N\le3$, and $78.4\%$ of adjacent-pair ratios within
+$[0.5,2.0]$ (only $0.8\%$ above $10$). We attribute this to per-cell
+deduplication in the public release, which erases exactly the
+cross-document count heterogeneity that makes weighting matter; it is a
+property of the released dataset, not of production logs.
+\end{itemize}
+
+The diagnostic makes the ``head queries hold most impressions''
+statement quantitative: because a small head of $(q,\mathrm{ad})$ pairs
+holds most of the impression mass, a query-cluster bootstrap
+(\S\ref{sec:cluster}) reflects the heavy-tailedness of the \emph{query}
+distribution rather than the estimator's conditional efficiency. The
+full per-pair histograms are produced by the diagnostic script in the
+repository.
+
+\subsection{Paired bootstrap CIs: harmonic vs.\ min}
+\label{sec:paired}
+
+The short paper reports that harmonic and min are empirically tied on
+KDD (ARE $4.53$ vs.\ $4.41$). To quantify whether the $\sim\!5$--$7\%$
+synthetic margin of harmonic over min is statistically distinguishable,
+we computed paired bootstrap $95\%$ CIs on per-trial squared-error
+margins with seed-aligned RNG (so per-trial outcomes are paired across
+schemes; split $80/20$, $500$ trials per cell, $2000$ bootstrap
+resamples). Results are in Table~\ref{tab:paired}.
+
+\begin{table}[h]
+\centering
+\caption{Paired bootstrap $95\%$ CIs on per-trial MSE margins
+(split $80/20$, $500$ trials, $2000$ resamples). $\bigstar$ marks CIs
+excluding zero. Margins in units of $10^{-4}$; bracketed CI endpoints in
+the same units.}
+\label{tab:paired}
+\begin{tabular}{lccc}
+\toprule
+Comparison & $r=1$ & $r=10$ & $r=50/100$ \\
+\midrule
+$\bigstar$ harmonic $-$ original
+  & $-7.1$ \footnotesize{[$-9.9,-4.9$]}
+  & $-6.7$ \footnotesize{[$-8.0,-5.6$]}
+  & $-7.1$ \footnotesize{[$-8.4,-5.9$]} \\
+harmonic $-$ min
+  & $-0.35$ \footnotesize{[$-0.62,-0.08$]}$\;\bigstar$
+  & $-0.18$ \footnotesize{[$-0.36,0.00$]}
+  & not significant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The harmonic$-$original margin's CI \emph{excludes zero in every tested
+cell}: harmonic reliably beats uniform. The harmonic$-$min margin's CI
+\emph{crosses zero at $r=50$ and $r=100$} (and is borderline at $r=10$):
+at high imbalance the harmonic-vs-min gap is not statistically
+distinguishable at $n=500$ trials. We therefore do not oversell the
+margin over min; the case for harmonic rests on the surrogate-IVW
+characterisation (Theorem~\ref{sup:thm:ivw}) and the unconditional
+guarantee (Theorem~\ref{sup:thm:cs}) that min lacks, not on an empirical
+margin. This is consistent with the KDD bootstrap of $\hat R$ itself,
+where harmonic and min agree within $\sim\!0.06\%$ on $(1,2)$ while
+uniform diverges by $\sim\!9\%$ (non-overlapping CIs).
+
+\subsection{Asymmetric surrogate: counterexample and structured search}
+\label{sec:asym-counterexample}
+
+Theorem~\ref{sup:thm:cs} bounds the \emph{symmetric} surrogate
+$V_k+V_{k'}$ unconditionally. The asymmetric analogue
+$\alpha V_k(\omega^h)+\beta V_{k'}(\omega^h)\le
+\alpha V_k(\mathbf 1)+\beta V_{k'}(\mathbf 1)$ does \emph{not} hold
+unconditionally, and we record the failure mode explicitly.
+
+\paragraph{Closed-form $n=2$ counterexample.}
+Take $\alpha=100$, $\beta=0.01$ with counts
+$(N_k^1,N_{k'}^1)=(100,1)$ and $(N_k^2,N_{k'}^2)=(2,2)$. Writing
+$f(\omega)=\alpha V_k(\omega)+\beta V_{k'}(\omega)$, direct computation
+gives $f(\omega^h)=12.876$ against $f(\mathbf 1)=12.754$: harmonic is
+$\sim\!1\%$ \emph{worse} than uniform. Structurally, when
+$\alpha\gg\beta$ a cell with $N_k\gg N_{k'}$ has small
+$s_i=\alpha/N_k^i+\beta/N_{k'}^i$ \emph{and} small
+$\omega_i^h\approx N_{k'}^i$, so $\smash{(\omega_i^h)^2}$ and $s_i$
+become positively correlated rather than anti-correlated ---the opposite
+of the covariance condition needed for $f(\omega^h)\le f(\mathbf 1)$.
+
+\paragraph{Structured two-archetype search.}
+A random count sweep over $[1,1000]^2$ almost never produces this
+pattern. Replacing it with a structured search over mixtures of two
+archetypes (``imbalanced'' $(M,1)$ vs.\ ``balanced'' $(b_0,b_0)$,
+sweeping the mixture fraction from $0$ to $1$) reveals the failure at
+every grid point: restricting $(\alpha,\beta)\in[0.1,10]^2$ (covering
+all adjacent and non-adjacent PBM pairs with $\eta=1$, $M=10$), harmonic
+loses to uniform in $100\%$ of a $15\times15$ $(\alpha,\beta)$ grid on at
+least one structured config, worst-case ratio $7.78$; on the wider range
+$[0.05,100]^2$ the worst ratio reaches $15.4$.
+
+\paragraph{Why this does not undermine harmonic in practice.}
+Realistic interventional sets contain heterogeneous counts (anchors plus
+regular docs with per-doc fluctuations), not degenerate two-archetype
+mixtures. On the full KDD counts, harmonic does not underperform uniform
+on the asymmetric surrogate: with the marginal-CTR estimates
+$\hat p_1=0.0501$, $\hat p_2=0.0256$ (so $\alpha=18.97$, $\beta=38.08$,
+$\alpha/\beta\approx0.50$), harmonic reduces
+$\alpha V_k+\beta V_{k'}$ by a factor $4.75$ versus uniform, essentially
+matching the symmetric reduction of $4.84$ (within $2\%$). The KDD
+per-pair counts are positively correlated (items popular at position $1$
+are typically also popular at position $2$), the opposite of the
+anti-correlated pattern the counterexample requires. A meaningful
+\emph{conditional} asymmetric bound (a regularity condition on the count
+distribution under which harmonic provably dominates uniform
+asymmetrically) remains open.
+
+\subsection{Plug-in $\theta$-oracle / EM comparison}
+\label{sec:plugin-oracle}
+
+Two ``oracle'' comparisons clarify why the count-only surrogate is the
+right object to optimise on heavy-tailed logs.
+
+\paragraph{Two-stage plug-in of the asymmetric oracle.}
+We implemented the adaptive scheme of Theorem~\ref{sup:thm:asym}: fit
+harmonic to obtain preliminary $\hat p$, derive
+$\hat\alpha,\hat\beta$, and apply
+$\hat\omega_i^\star=N_k^iN_{k'}^i/(\hat\alpha N_{k'}^i+\hat\beta N_k^i)$.
+On the synthetic benchmark (split $80/20$, $500$ trials), plug-in,
+harmonic, and the true-propensity oracle agree to within $0.4\%$ in MSE
+(Table~\ref{tab:plugin}); the plug-in's marginal gains ($0.3$--$0.4\%$
+relative) are smaller than the trial-to-trial standard error. The
+asymmetric oracle therefore provides essentially no benefit over
+parameter-free harmonic, strengthening the case for harmonic.
+
+\begin{table}[h]
+\centering
+\caption{Plug-in oracle vs.\ harmonic and the true-propensity oracle,
+MSE (split $80/20$). Plug-in does not statistically improve over
+harmonic; both match the true oracle to within trial noise.}
+\label{tab:plugin}
+\begin{tabular}{lccc}
+\toprule
+$r=$ & $10$ & $50$ & $100$ \\
+\midrule
+original                & $1.67\times10^{-3}$ & $1.58\times10^{-3}$ & $1.49\times10^{-3}$ \\
+harmonic                & $7.87\times10^{-4}$ & $7.31\times10^{-4}$ & $7.24\times10^{-4}$ \\
+plug-in (this paper)    & $7.84\times10^{-4}$ & $7.30\times10^{-4}$ & $7.22\times10^{-4}$ \\
+true-propensity oracle  & $7.85\times10^{-4}$ & $7.30\times10^{-4}$ & $7.22\times10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{$\theta$-aware oracle and PBM-EM on KDD.}
+The exact inverse-variance oracle uses per-cell relevance through
+$\theta_r^i(1-\theta_r^i)$. Plugging in per-cell $\hat r_i$ on the full
+KDD $(1,2)$ set makes this $\theta$-aware oracle \emph{pathological}
+(ARE $0.002$, SE $0.148$, ESS $\approx1.1$): $\hat r_i$ is unusable on
+the $\sim\!60\%$ singleton mass, so the oracle chases noise. Beta
+shrinkage of $\hat\theta_i$ (pseudo-counts $a\in\{1,\dots,1000\}$) lifts
+its ARE only from $0.002$ to $0.61$ ---still below harmonic's $4.53$.
+Relatedly, vanilla no-feature PBM-MLE (one $r_i$ per cell) on KDD
+$(1,2)$ collapses to $\hat R_{1,2}=1.682$, the uniform estimand, because
+the model is over-parameterised on singleton-dominated data;
+feature-based EM~\cite{wang2018position} avoids this but needs features
+absent from the anonymised aggregation. On clean synthetic PBM data the
+same MLE recovers $R=2.0$ (SE $0.035$; harmonic $0.040$, uniform
+$0.055$; $500$ trials), confirming the implementation. The comparison
+between model-free intervention harvesting and parametric joint
+inference is thus methodologically ill-posed rather than merely omitted:
+the two paradigms solve different estimation problems.
+
+\subsection{Query-cluster (cluster) bootstrap}
+\label{sec:cluster}
+
+The click-resample (parametric Bernoulli bootstrap conditional on
+counts) is the empirical baseline the plug-in $\widetilde V$ is
+validated against, agreeing to within $1$--$2\%$; it isolates the
+conditional-on-counts click-noise efficiency that
+Theorem~\ref{sup:thm:cs} bounds. A \emph{query-cluster bootstrap}
+resamples entire queries (clusters of $(q,\mathrm{ad})$ pairs) rather
+than individual pairs, and therefore measures variation in the
+underlying \emph{query population}. Because a small head of queries
+holds most impressions (\S\ref{sec:perquery}), the cluster bootstrap is
+dominated by that heavy-tailed query distribution: it is a diagnostic of
+the log, not of the estimator at fixed counts, and it penalises any
+concentrated-weight (inverse-variance-style) estimator through the
+effective-sample-size mechanism familiar from importance sampling. This
+is the same reason naive pair-bootstrap is misaligned as an efficiency
+diagnostic here: on full KDD, harmonic/min show $\sim\!3\times$
+\emph{larger} pair-bootstrap std than uniform on $(1,2)$, not because
+they are less precise conditional on counts (they reduce the surrogate
+by $79\%$), but because resampling the count population perturbs the
+high-information cells that drive any inverse-variance estimator. We
+report the cluster/pair bootstrap for transparency; the load-bearing
+real-data result is the deterministic $79\%$ surrogate reduction on the
+observed counts.
+
+\begin{thebibliography}{1}
+\bibitem{wang2018position}
+X.~Wang, M.~Bendersky, D.~Metzler, and M.~Najork.
+\newblock Position bias estimation for unbiased learning to rank in
+personal search.
+\newblock In {\em WSDM}, 2018.
+\end{thebibliography}
+
+\end{document}

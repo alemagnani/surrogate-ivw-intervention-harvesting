@@ -125,10 +125,11 @@ The test suite covers the weighting functions, intervention-set construction,
 and an end-to-end PBM recovery check for the estimators. It runs without `torch`
 thanks to a stub in `tests/conftest.py`.
 
-## Supplement
+## Paper and supplement
 
-Proofs and additional derivations referenced by the paper are provided in
-[`supplement/`](supplement/) (the supplement PDF is added separately).
+- **Paper:** [`paper/cikm_short.pdf`](paper/cikm_short.pdf)
+- **Supplement** (complete proofs + additional sensitivity analyses referenced by the paper):
+  [`supplement/supplement.pdf`](supplement/supplement.pdf) (source: `supplement/supplement.tex`)
 
 ## Citation
 
@@ -139,7 +140,8 @@ Proofs and additional derivations referenced by the paper are provided in
   booktitle = {Proceedings of the 35th ACM International Conference on Information and Knowledge Management (CIKM '26)},
   year      = {2026},
   publisher = {ACM},
-  address   = {Rome, Italy}
+  address   = {Rome, Italy},
+  doi       = {10.1145/3799682.3839883}
 }
 ```
 
