@@ -1,0 +1,262 @@
+%% CIKM 2026 — A0 PORTRAIT poster for short paper 3456 (csp3456)
+%% "Surrogate Inverse-Variance Weighting for Intervention Harvesting on Heavy-Tailed Click Logs"
+%% Alessandro Magnani, Min Xie (Coupang).  Build:  latexmk -pdf poster.tex
+%% v3: didactic pass (Codex suggestions). Assets: repo_qr.png
+\documentclass[final]{beamer}
+\usepackage[size=a0,orientation=portrait,scale=1.40]{beamerposter}
+\usetheme{default}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{booktabs,multirow,amsmath,graphicx,tikz}
+\usepackage{colortbl}
+\usetikzlibrary{arrows.meta}
+
+\definecolor{ink}{HTML}{14213D}
+\definecolor{rule}{HTML}{2D4B8E}
+\definecolor{accent}{HTML}{C1440E}
+\definecolor{soft}{HTML}{EEF2F9}
+\definecolor{softer}{HTML}{F7F9FC}
+\definecolor{greytext}{HTML}{4A5568}
+\definecolor{band}{HTML}{E7EEF8}
+
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{block title}{fg=white,bg=rule}
+\setbeamercolor{block body}{fg=ink,bg=softer}
+\setbeamerfont{block title}{size=\Large,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{rule}$\blacktriangleright$}
+\setbeamertemplate{itemize/enumerate body begin}{\normalsize}
+
+\newcommand{\hl}[1]{\textcolor{accent}{\textbf{#1}}}
+\newcommand{\cmark}{{\color{rule}\textbf{\ding{51}}}}
+\newcommand{\keynum}[2]{\begin{minipage}[t]{\linewidth}\centering
+  {\fontsize{72}{78}\selectfont\color{accent}\textbf{#1}}\\[0.3em]{\normalsize\color{greytext}#2}\end{minipage}}
+% evidence card: big number, bold label, small sub
+\newcommand{\evcard}[3]{{\setlength{\fboxrule}{1.6pt}\fcolorbox{rule!45}{soft}{\begin{minipage}[t][6.8cm][c]{0.29\linewidth}\centering
+  {\fontsize{46}{50}\selectfont\color{accent}\textbf{#1}}\\[0.25em]{\color{ink}\textbf{#2}}\\[0.15em]{\small\color{greytext}#3}\end{minipage}}}}
+% one ranked-list "SERP" card; #1 highlighted rank (1 or 3), #2 ctr caption
+\newcommand{\serp}[3]{% #1 = rank of X (1 or 3), #2=clicks, #3=ctr
+\begin{tikzpicture}[every node/.style={font=\normalsize},inner sep=7pt]
+ \node[anchor=south west,font=\large\bfseries,text=rule,inner sep=2pt] at (0,0.14) {\ifnum#1=1 Sessions: X at rank 1\else Sessions: X at rank 3\fi};
+ \node[fill=rule!12,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,0) {\textbf{Query:}~~red shoes};
+ \ifnum#1=1
+   \node[fill=accent!20,draw=accent,line width=1.2pt,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-1.3) {\textbf{1.~~Product X}};
+   \node[fill=softer,draw=greytext!30,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-2.6) {\textcolor{greytext}{2.~~other item}};
+   \node[fill=softer,draw=greytext!30,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-3.9) {\textcolor{greytext}{3.~~other item}};
+ \else
+   \node[fill=softer,draw=greytext!30,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-1.3) {\textcolor{greytext}{1.~~other item}};
+   \node[fill=softer,draw=greytext!30,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-2.6) {\textcolor{greytext}{2.~~other item}};
+   \node[fill=accent!20,draw=accent,line width=1.2pt,rounded corners,text width=12.5cm,align=left,minimum height=1.15cm,anchor=north west] at (0,-3.9) {\textbf{3.~~Product X}};
+ \fi
+ \node[text=greytext,anchor=north west,align=left] at (0,-5.35) {1{,}000 impressions $\to$ #2 clicks $\to$ \textbf{\textcolor{ink}{#3 CTR}}};
+\end{tikzpicture}}
+\usepackage{pifont} % \ding for checkmarks
+
+\begin{document}
+\begin{frame}[t]{}
+
+%% ============================== TITLE BAR ==============================
+\begin{beamercolorbox}[wd=\textwidth,sep=1.0cm]{}
+\begin{center}
+\begin{minipage}{0.80\textwidth}\raggedright
+{\fontsize{60}{70}\selectfont\color{ink}\textbf{Surrogate Inverse-Variance Weighting for}\\[0.1em]
+\textbf{Intervention Harvesting on Heavy-Tailed Click Logs}}\\[0.55cm]
+{\fontsize{38}{44}\selectfont\color{rule}Alessandro Magnani \quad\textbar\quad Min Xie}\quad
+{\fontsize{30}{36}\selectfont\color{greytext}Coupang, Mountain View, CA}
+\end{minipage}%
+\hfill
+\begin{minipage}{0.16\textwidth}\centering
+\includegraphics[width=0.72\linewidth]{repo_qr.png}\\[0.2em]{\normalsize\color{greytext}Code, tests \& data}
+\end{minipage}
+\end{center}
+\end{beamercolorbox}
+
+%% ============================== BANNER (what / why / payoff) ==============================
+\begin{center}
+\colorbox{band}{\begin{minipage}{0.96\textwidth}\vspace{0.3cm}
+\centering
+{\fontsize{34}{42}\selectfont\color{ink}\textbf{Estimate position bias from ordinary click logs} --- weight each repeated query--item pair by
+~~\hl{$\omega_i=\dfrac{N_k^i\,N_{k'}^i}{N_k^i+N_{k'}^i}$}~~(harmonic; $N$ = the pair's impressions at each rank).}\\[0.35cm]
+{\fontsize{30}{38}\selectfont\color{ink}On the full KDD log, equal weighting needs \hl{$\approx 4.5\times$ more impressions} for the same estimated precision.}\\[0.15cm]
+{\normalsize\color{greytext}(A model-based precision gain computed on the KDD log; independent ground-truth checks in block 6.)}
+\vspace{0.3cm}\end{minipage}}
+\end{center}
+\vspace{0.5cm}
+
+\begin{columns}[t]
+
+%% ============================== LEFT COLUMN ==============================
+\begin{column}{0.465\paperwidth}
+
+\begin{block}{\textcolor{accent}{1.}\ Same item, different rank $\Rightarrow$ position bias}
+Users click top results more --- partly because they are \emph{better},
+partly just because they are \emph{seen} more. Under the \textbf{Position-Based
+Model}, a click factorises as
+\[ P(\text{click}\mid q,d,k)=\underbrace{p_k}_{\substack{\text{examination:}\\ \text{seen at rank }k}}\;\times\;\underbrace{r_{q,d}}_{\text{relevance}} . \]
+The \textbf{same product}, shown at \textbf{different ranks} across groups of
+logged sessions, lets us cancel relevance:
+\medskip
+
+\begin{center}
+\resizebox{0.99\linewidth}{!}{\serp{1}{100}{10\%}\hspace{0.7cm}\serp{3}{40}{4\%}}
+\end{center}
+\medskip
+
+\begin{center}
+{\large Same query \& item $\Rightarrow$ same $r$, and $\mathrm{CTR}_k=p_k r$:}\\[0.2em]
+$\displaystyle \frac{\mathrm{CTR@1}}{\mathrm{CTR@3}}=\frac{10\%}{4\%}=\frac{p_1 r}{p_3 r}=\frac{p_1}{p_3}=\textcolor{accent}{\boldsymbol{2.5{\times}}}$
+\end{center}
+\medskip
+
+\hl{The CTR ratio \emph{is} the position-bias ratio} --- no A/B test, no
+relevance labels. Reusing these natural rank changes is called
+\emph{intervention harvesting}; the task is to combine \textbf{millions} of
+such query--item cells into one estimate of $R_{k,k'}=p_k/p_{k'}$.
+\smallskip
+
+{\small\color{greytext}\textbf{Key terms:}~ \emph{cell} = one query--item pair ~$\cdot$~
+$N_k$ = times shown at rank $k$ ~$\cdot$~ $p_k$ = chance rank $k$ is examined
+~$\cdot$~ $\omega_i$ = that cell's weight in the average.}
+\end{block}
+
+\begin{block}{\textcolor{accent}{2.}\ Why equal weighting fails}
+On the \textbf{full KDD Cup 2012} log (235.6M impressions), the cells seen at
+both rank 1 and rank 2 --- \textbf{4.61M} query--item pairs, 132.3M impressions ---
+have wildly uneven counts:
+\medskip
+\begin{center}
+\begin{minipage}{0.47\linewidth}\keynum{60.7\%}{of pairs are near-empty\\($N_1\!+\!N_2\le 5$)}\end{minipage}\hfill
+\begin{minipage}{0.47\linewidth}\keynum{42\%}{of all impressions sit in\\the top \textbf{0.1\%} of pairs}\end{minipage}
+\end{center}
+\medskip
+Giving a near-empty cell the \textbf{same say} as a million-impression cell
+is like averaging a noisy guess and a precise measurement equally. The gain
+from fixing this lives entirely in the high-count cells:
+\medskip
+
+\begin{center}
+\begin{tikzpicture}[y=-1.25cm]
+ \foreach \lab/\val/\txt/\c [count=\i from 0] in {%
+   {low-count third}/3.1/1.02$\times$/rule!35,
+   {middle third}/3.3/1.09$\times$/rule!35,
+   {high-count third}/15/\textbf{4.98$\times$}/accent}{
+   \node[anchor=east,font=\normalsize] at (-0.3,\i) {\lab};
+   \fill[\c] (0,\i-0.32) rectangle (\val,\i+0.32);
+   \node[anchor=west,font=\normalsize,text=ink] at (\val+0.25,\i) {\txt};}
+ \draw[dashed,thick,greytext] (3.04,2.55) -- (3.04,-0.55) node[above,font=\small,text=greytext] {$1\times$ = equal weighting};
+\end{tikzpicture}\\[0.2em]
+{\small\color{greytext}Efficiency vs equal weighting, by cell-count third (KDD). Efficiency $=$ variance under equal weighting $\div$ variance under harmonic; higher is better.}
+\end{center}
+\end{block}
+
+\begin{block}{\textcolor{accent}{3.}\ The one-line fix: a count-only weight}
+Under PBM, \emph{any} weight that depends only on counts still estimates the
+same ratio $p_k/p_{k'}$ --- it changes only the noise --- so we may pick it
+purely for precision. We compare three:
+\medskip
+\begin{center}
+\setlength{\tabcolsep}{16pt}\renewcommand{\arraystretch}{1.75}
+\begin{tabular}{ll}
+\toprule
+\textbf{Scheme} & \textbf{Weight $\omega_i$}\\
+\midrule
+Equal \textit{(prior work)} & $1$\\
+Min-count \textit{(new)}    & $\min(N_k^i,N_{k'}^i)$\\
+\rowcolor{soft}\textbf{Harmonic} \textit{(new)} & $\dfrac{N_k^i N_{k'}^i}{N_k^i+N_{k'}^i}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+In code, per query--item pair:
+\begin{center}\colorbox{ink}{\parbox{0.9\linewidth}{\centering\color{white}\large\texttt{w = n\_k * n\_kp / (n\_k + n\_kp)}}}\end{center}
+\smallskip
+\hl{One line.} (\texttt{n\_k}, \texttt{n\_kp} = the pair's impressions at ranks $k$, $k'$.) No experiment, no relevance labels, no tuned parameters.
+\end{block}
+
+\end{column}
+
+%% ============================== RIGHT COLUMN ==============================
+\begin{column}{0.465\paperwidth}
+
+\begin{block}{\textcolor{accent}{4.}\ Result: ranks 1 vs 2 (4.61M pairs, 132.3M impr.)}
+\begin{center}
+\setlength{\tabcolsep}{15pt}\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lrrr}
+\toprule
+Scheme & Est.\ $p_1/p_2$ & SE \footnotesize(lower better) & \textbf{Efficiency vs equal}\\
+\midrule
+Equal                    & 1.683 & 4.24e-3 & 1.00\\
+Min                      & 1.712 & 2.05e-3 & 4.41\\
+\rowcolor{soft}\textbf{Harmonic} & \textbf{1.710} & \textbf{2.02e-3} & \hl{4.53}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+\begin{center}\keynum{4.53$\times$}{equal weighting needs ${\sim}4.5\times$ the impressions for the same precision}\end{center}
+\smallskip
+{\small\color{greytext}\textbf{A fair caveat, read with the number:} this is \emph{precision} at a fixed
+target. When PBM is imperfect, different weights average slightly different
+things (equal $\to 1.68$, harmonic $\to 1.71$) --- we do \textbf{not} claim one
+is the single ``true'' bias. ``Efficiency'' $=$ Var(equal)$/$Var(harmonic).}
+\end{block}
+
+\begin{block}{The surprise: the ``optimal'' oracle is \emph{worse}}
+Classical theory says: weight by the exact per-cell variance, which needs the
+relevance $r_i$. Plug in an \emph{estimated} $\hat r_i$ and efficiency
+\textbf{collapses to} \hl{0.002} --- i.e.\ ${\sim}500\times$ \emph{worse} than equal weighting --- because
+$\hat r_i$ is too noisy to be useful on the $60\%$ near-empty cells.
+\smallskip
+
+\hl{So the count-only recipe isn't a shortcut --- it is the robust choice.}
+\end{block}
+
+\begin{block}{\textcolor{accent}{5.}\ Why it works}
+\large
+\cmark\ Harmonic is the \textbf{inverse-variance optimum} of a count-only
+approximation to the per-cell variance (the \emph{surrogate} in our title) ---
+dropping the unknown relevance term is exactly what makes it \emph{deployable}.\\[0.3em]
+\cmark\ \textbf{Provably no worse} than equal weighting on that surrogate variance,
+for \emph{any} counts (Cauchy--Schwarz). On KDD's empirical asymmetric
+surrogate it still improves $4.75\times$.\\[0.3em]
+\cmark\ \textbf{No relevance estimates, no tuning} --- min-count has no such
+guarantee, so we recommend harmonic.
+\end{block}
+
+\begin{block}{\textcolor{accent}{6.}\ Validation \& guardrail}
+Three independent lines of evidence --- one \emph{model-based} (a variance formula applied to real data) and two \emph{ground-truth} (true variance known by simulation):
+\medskip
+\begin{center}
+\evcard{4.5$\times$}{KDD real log}{model-based asymptotic efficiency}\hfill
+\evcard{up to 54\%}{Synthetic ground truth}{43.6--54\% less variance}\hfill
+\evcard{${\sim}40\%$}{Yahoo semi-synthetic}{less variance\\ (95\% CI: 29--51\% less)}
+\end{center}
+\medskip
+Count-only weights pull further ahead of equal weighting as the log gets more
+heavy-tailed --- exactly the production regime.
+\medskip
+
+{\small\color{greytext}\textbf{Guardrail.} PBM is only an approximation: across 16{,}132 high-information pairs, the per-cell bias ratios vary ${\approx}3.8\times$ more than click noise alone would explain (Cochran $Q$). So choosing a weight trades precision against \emph{which} average you estimate --- there is no single ``true'' ratio to find.}
+\end{block}
+
+\begin{block}{Bottom line}
+\large
+Swap equal weighting for the \textbf{harmonic count-only weight}:
+\textbf{one line of code}, no new data, \textbf{${\sim}4.5\times$} more
+efficient on the full KDD log (ranks 1 vs 2) --- and \emph{don't} reach for the plug-in
+relevance oracle, which is worse than doing nothing on heavy-tailed logs.
+\end{block}
+
+\end{column}
+\end{columns}
+
+%% ============================== FOOTER ==============================
+\vspace{0.3cm}
+{\color{rule}\rule{\textwidth}{4pt}}\\[0.3cm]
+\begin{center}{\large\color{greytext}
+\texttt{github.com/alemagnani/surrogate-ivw-intervention-harvesting}
+\quad\textbullet\quad DOI \texttt{10.1145/3799682.3839883}\\[0.15em]
+ISBN 979-8-4007-2539-5 \quad\textbullet\quad CC BY 4.0
+\quad\textbullet\quad \texttt{almagnan@coupang.com}}\end{center}
+
+\end{frame}
+\end{document}
