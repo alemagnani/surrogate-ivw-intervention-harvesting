@@ -93,7 +93,7 @@ Users click top results more --- partly because they are \emph{better},
 partly just because they are \emph{seen} more. Under the \textbf{Position-Based
 Model}, a click factorises as
 \[ P(\text{click}\mid q,d,k)=\underbrace{p_k}_{\substack{\text{examination:}\\ \text{seen at rank }k}}\;\times\;\underbrace{r_{q,d}}_{\text{relevance}} . \]
-The \textbf{same product}, shown at \textbf{different ranks} across groups of
+The \textbf{same product X}, shown at \textbf{different ranks} across groups of
 logged sessions, lets us cancel relevance:
 \medskip
 
@@ -167,10 +167,9 @@ Min-count \textit{(new)}    & $\min(N_k^i,N_{k'}^i)$\\
 \end{tabular}
 \end{center}
 \medskip
-In code, per query--item pair:
-\begin{center}\colorbox{ink}{\parbox{0.9\linewidth}{\centering\color{white}\large\texttt{w = n\_k * n\_kp / (n\_k + n\_kp)}}}\end{center}
-\smallskip
-\hl{One line.} (\texttt{n\_k}, \texttt{n\_kp} = the pair's impressions at ranks $k$, $k'$.) No experiment, no relevance labels, no tuned parameters.
+The entire change, per query--item pair --- replace the weight, nothing else:
+\begin{center}\colorbox{ink}{\parbox{0.9\linewidth}{\centering\color{white}\large $\omega_i = 1 \;\longrightarrow\; \omega_i = N_k^i\,N_{k'}^i \,/\, (N_k^i + N_{k'}^i)$}}\end{center}
+\hl{One line.} No experiment, no relevance labels, no tuned parameters.
 \end{block}
 
 \end{column}
