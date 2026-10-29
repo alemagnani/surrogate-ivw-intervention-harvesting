@@ -56,32 +56,33 @@
 \begin{frame}[t]{}
 
 %% ============================== TITLE BAR ==============================
-\begin{beamercolorbox}[wd=\textwidth,sep=1.0cm]{}
+\begin{beamercolorbox}[wd=\textwidth,sep=0.75cm]{}
 \begin{center}
 \begin{minipage}{0.80\textwidth}\raggedright
-{\fontsize{60}{70}\selectfont\color{ink}\textbf{Surrogate Inverse-Variance Weighting for}\\[0.1em]
-\textbf{Intervention Harvesting on Heavy-Tailed Click Logs}}\\[0.55cm]
+{\fontsize{28}{34}\selectfont\color{accent}\textbf{ACM CIKM 2026 \quad\textbullet\quad Rome, Italy \quad\textbullet\quad Short Paper}}\\[0.25cm]
+{\fontsize{58}{66}\selectfont\color{ink}\textbf{Surrogate Inverse-Variance Weighting for}\\[0.08em]
+\textbf{Intervention Harvesting on Heavy-Tailed Click Logs}}\\[0.35cm]
 {\fontsize{38}{44}\selectfont\color{rule}Alessandro Magnani \quad\textbar\quad Min Xie}\quad
 {\fontsize{30}{36}\selectfont\color{greytext}Coupang, Mountain View, CA}
 \end{minipage}%
 \hfill
 \begin{minipage}{0.16\textwidth}\centering
-\includegraphics[width=0.72\linewidth]{repo_qr.png}\\[0.2em]{\normalsize\color{greytext}Code, tests \& data}
+\includegraphics[width=0.70\linewidth]{repo_qr.png}\\[0.15em]{\normalsize\color{greytext}Code, tests \& data}
 \end{minipage}
 \end{center}
 \end{beamercolorbox}
 
 %% ============================== BANNER (what / why / payoff) ==============================
 \begin{center}
-\colorbox{band}{\begin{minipage}{0.96\textwidth}\vspace{0.3cm}
+\colorbox{band}{\begin{minipage}{0.96\textwidth}\vspace{0.22cm}
 \centering
-{\fontsize{34}{42}\selectfont\color{ink}\textbf{Estimate position bias from ordinary click logs} --- weight each repeated query--item pair by
-~~\hl{$\omega_i=\dfrac{N_k^i\,N_{k'}^i}{N_k^i+N_{k'}^i}$}~~(harmonic; $N$ = the pair's impressions at each rank).}\\[0.35cm]
-{\fontsize{30}{38}\selectfont\color{ink}On the full KDD log, equal weighting needs \hl{$\approx 4.5\times$ more impressions} for the same estimated precision.}\\[0.15cm]
-{\normalsize\color{greytext}(A model-based precision gain computed on the KDD log; independent ground-truth checks in block 6.)}
-\vspace{0.3cm}\end{minipage}}
+{\fontsize{33}{40}\selectfont\color{ink}\textbf{Estimate position bias from ordinary click logs} --- weight each repeated query--item pair by
+~~\hl{$\omega_i=\dfrac{N_k^i\,N_{k'}^i}{N_k^i+N_{k'}^i}$}~~(harmonic; $N$ = pair's impressions at each rank).}\\[0.22cm]
+{\fontsize{29}{36}\selectfont\color{ink}On the full KDD log, equal weighting needs \hl{$\approx 4.5\times$ more impressions} for the same estimated precision.}\\[0.10cm]
+{\normalsize\color{greytext}(The 4.5$\times$ is model-based precision on KDD's observed counts; ground-truth simulations in Block 6 corroborate it.)}
+\vspace{0.22cm}\end{minipage}}
 \end{center}
-\vspace{0.5cm}
+\vspace{0.25cm}
 
 \begin{columns}[t]
 
@@ -95,18 +96,18 @@ Model}, a click factorises as
 \[ P(\text{click}\mid q,d,k)=\underbrace{p_k}_{\substack{\text{examination:}\\ \text{seen at rank }k}}\;\times\;\underbrace{r_{q,d}}_{\text{relevance}} . \]
 The \textbf{same product X}, shown at \textbf{different ranks} across groups of
 logged sessions, lets us cancel relevance:
-\medskip
+\smallskip
 
 \begin{center}
-\resizebox{0.99\linewidth}{!}{\serp{1}{100}{10\%}\hspace{0.7cm}\serp{3}{40}{4\%}}
+\resizebox{0.97\linewidth}{!}{\serp{1}{100}{10\%}\hspace{0.7cm}\serp{3}{40}{4\%}}
 \end{center}
-\medskip
+\smallskip
 
 \begin{center}
-{\large Same query \& item $\Rightarrow$ same $r$, and $\mathrm{CTR}_k=p_k r$:}\\[0.2em]
+{\large Same query \& item $\Rightarrow$ same $r$, and $\mathrm{CTR}_k=p_k r$:}\\[0.15em]
 $\displaystyle \frac{\mathrm{CTR@1}}{\mathrm{CTR@3}}=\frac{10\%}{4\%}=\frac{p_1 r}{p_3 r}=\frac{p_1}{p_3}=\textcolor{accent}{\boldsymbol{2.5{\times}}}$
 \end{center}
-\medskip
+\smallskip
 
 \hl{The CTR ratio \emph{is} the position-bias ratio} --- no A/B test, no
 relevance labels. Reusing these natural rank changes is called
@@ -114,62 +115,64 @@ relevance labels. Reusing these natural rank changes is called
 such query--item cells into one estimate of $R_{k,k'}=p_k/p_{k'}$.
 \smallskip
 
-{\small\color{greytext}\textbf{Key terms:}~ \emph{cell} = one query--item pair ~$\cdot$~
-$N_k$ = times shown at rank $k$ ~$\cdot$~ $p_k$ = chance rank $k$ is examined
-~$\cdot$~ $\omega_i$ = that cell's weight in the average.}
+{\small\color{greytext}\textbf{Key terms:}~ \emph{cell} $i$ = one query--item pair ~$\cdot$~
+$N_k^i$ = times it was shown at rank $k$ ~$\cdot$~ $C_k^i$ = clicks there ~$\cdot$~ $\omega_i$ = its weight.}
 \end{block}
 
-\begin{block}{\textcolor{accent}{2.}\ Why equal weighting fails}
+\begin{block}{\textcolor{accent}{2.}\ Why equal weighting fails on real logs}
 On the \textbf{full KDD Cup 2012} log (235.6M impressions), the cells seen at
 both rank 1 and rank 2 --- \textbf{4.61M} query--item pairs, 132.3M impressions ---
 have wildly uneven counts:
-\medskip
+\smallskip
 \begin{center}
 \begin{minipage}{0.47\linewidth}\keynum{60.7\%}{of pairs are near-empty\\($N_1\!+\!N_2\le 5$)}\end{minipage}\hfill
 \begin{minipage}{0.47\linewidth}\keynum{42\%}{of all impressions sit in\\the top \textbf{0.1\%} of pairs}\end{minipage}
 \end{center}
-\medskip
+\smallskip
 Giving a near-empty cell the \textbf{same say} as a million-impression cell
-is like averaging a noisy guess and a precise measurement equally. The gain
-from fixing this lives entirely in the high-count cells:
-\medskip
+averages noisy guesses and precise measurements equally. The gain
+from fixing this lives in the high-count head:
+\smallskip
 
 \begin{center}
-\begin{tikzpicture}[y=-1.25cm]
+\begin{tikzpicture}[y=-1.10cm]
  \foreach \lab/\val/\txt/\c [count=\i from 0] in {%
    {low-count third}/3.1/1.02$\times$/rule!35,
    {middle third}/3.3/1.09$\times$/rule!35,
    {high-count third}/15/\textbf{4.98$\times$}/accent}{
    \node[anchor=east,font=\normalsize] at (-0.3,\i) {\lab};
-   \fill[\c] (0,\i-0.32) rectangle (\val,\i+0.32);
+   \fill[\c] (0,\i-0.30) rectangle (\val,\i+0.30);
    \node[anchor=west,font=\normalsize,text=ink] at (\val+0.25,\i) {\txt};}
- \draw[dashed,thick,greytext] (3.04,2.55) -- (3.04,-0.55) node[above,font=\small,text=greytext] {$1\times$ = equal weighting};
-\end{tikzpicture}\\[0.2em]
-{\small\color{greytext}Efficiency vs equal weighting, by cell-count third (KDD). Efficiency $=$ variance under equal weighting $\div$ variance under harmonic; higher is better.}
+ \draw[dashed,thick,greytext] (3.04,2.40) -- (3.04,-0.45) node[above,font=\small,text=greytext] {$1\times$ = equal weighting};
+\end{tikzpicture}\\[0.1em]
+{\small\color{greytext}Efficiency ($\mathrm{Var}_{\text{equal}}/\mathrm{Var}_{\text{harmonic}}$) by cell-count tertile on KDD.\\[0.1em]
+\textbf{Why not Baidu-ULTR?} In its public release $94.1\%$ of $(q,d,\mathrm{pos})$ cells have $N{=}1$ --- consistent with per-cell deduplication, unlike KDD's heavy tail.}
 \end{center}
 \end{block}
 
-\begin{block}{\textcolor{accent}{3.}\ The one-line fix: a count-only weight}
-Under PBM, \emph{any} weight that depends only on counts still estimates the
-same ratio $p_k/p_{k'}$ --- it changes only the noise --- so we may pick it
-purely for precision. We compare three:
-\medskip
+\begin{block}{\textcolor{accent}{3.}\ Drop-in fix: weighted ratio estimator}
+Under PBM, \emph{any} count-only weight $\omega_i(N_k^i,N_{k'}^i)$ in the self-normalised ratio estimator still targets the same $p_k/p_{k'}$ --- it changes only the noise; harmonic is the one that minimises the count-only variance surrogate:
+\smallskip
+\begin{center}\colorbox{ink}{\parbox{0.94\linewidth}{\vspace{0.12cm}\centering\color{white}\normalsize
+$\displaystyle \hat R_{k,k'} = \frac{\sum_i \omega_i\,\bigl(C_k^i / N_k^i\bigr)}{\sum_i \omega_i\,\bigl(C_{k'}^i / N_{k'}^i\bigr)}$
+\quad with \quad
+$\omega_i = 1 \;\longrightarrow\; \omega_i = \dfrac{N_k^i\,N_{k'}^i}{N_k^i + N_{k'}^i}$
+\vspace{0.12cm}}}\end{center}
+\smallskip
 \begin{center}
-\setlength{\tabcolsep}{16pt}\renewcommand{\arraystretch}{1.75}
-\begin{tabular}{ll}
+\setlength{\tabcolsep}{12pt}\renewcommand{\arraystretch}{1.45}
+\begin{tabular}{lll}
 \toprule
-\textbf{Scheme} & \textbf{Weight $\omega_i$}\\
+\textbf{Scheme} & \textbf{Weight $\omega_i$} & \textbf{Property}\\
 \midrule
-Equal \textit{(prior work)} & $1$\\
-Min-count \textit{(new)}    & $\min(N_k^i,N_{k'}^i)$\\
-\rowcolor{soft}\textbf{Harmonic} \textit{(new)} & $\dfrac{N_k^i N_{k'}^i}{N_k^i+N_{k'}^i}$\\
+Equal \textit{(Agarwal et al.)} & $1$ & Treats $N{=}1$ and $N{=}10^6$ equally\\
+Min-count \textit{(new)}    & $\min(N_k^i,N_{k'}^i)$ & Heuristic; no all-count guarantee\\
+\rowcolor{soft}\textbf{Harmonic} \textit{(new)} & $\dfrac{N_k^i N_{k'}^i}{N_k^i+N_{k'}^i}$ & \textbf{Count-only surrogate IVW optimum}\\
 \bottomrule
 \end{tabular}
 \end{center}
-\medskip
-The entire change, per query--item pair --- replace the weight, nothing else:
-\begin{center}\colorbox{ink}{\parbox{0.9\linewidth}{\centering\color{white}\large $\omega_i = 1 \;\longrightarrow\; \omega_i = N_k^i\,N_{k'}^i \,/\, (N_k^i + N_{k'}^i)$}}\end{center}
-\hl{One line.} No experiment, no relevance labels, no tuned parameters.
+\smallskip
+\hl{One line of code.} Composes cleanly with \textsc{AdjacentChain}, \textsc{AllPairs}, or \textsc{Pivot} --- no labels, no tuning.
 \end{block}
 
 \end{column}
@@ -177,72 +180,57 @@ The entire change, per query--item pair --- replace the weight, nothing else:
 %% ============================== RIGHT COLUMN ==============================
 \begin{column}{0.465\paperwidth}
 
-\begin{block}{\textcolor{accent}{4.}\ Result: ranks 1 vs 2 (4.61M pairs, 132.3M impr.)}
+\begin{block}{\textcolor{accent}{4.}\ KDD Cup 2012 results: ranks 1 vs 2 (4.61M pairs)}
 \begin{center}
 \setlength{\tabcolsep}{15pt}\renewcommand{\arraystretch}{1.5}
 \begin{tabular}{lrrr}
 \toprule
-Scheme & Est.\ $p_1/p_2$ & SE \footnotesize(lower better) & \textbf{Efficiency vs equal}\\
+Scheme & $\hat R_{1,2}$ & SE \footnotesize(lower better) & \textbf{Efficiency vs equal}\\
 \midrule
-Equal                    & 1.683 & 4.24e-3 & 1.00\\
-Min                      & 1.712 & 2.05e-3 & 4.41\\
+Equal ($\omega_i=1$)             & 1.683 & 4.24e-3 & 1.00\\
+Min-count                        & 1.712 & 2.05e-3 & 4.41\\
 \rowcolor{soft}\textbf{Harmonic} & \textbf{1.710} & \textbf{2.02e-3} & \hl{4.53}\\
 \bottomrule
 \end{tabular}
 \end{center}
-\medskip
-\begin{center}\keynum{4.53$\times$}{equal weighting needs ${\sim}4.5\times$ the impressions for the same precision}\end{center}
 \smallskip
-{\small\color{greytext}\textbf{A fair caveat, read with the number:} this is \emph{precision} at a fixed
-target. When PBM is imperfect, different weights average slightly different
-things (equal $\to 1.68$, harmonic $\to 1.71$) --- we do \textbf{not} claim one
-is the single ``true'' bias. ``Efficiency'' $=$ Var(equal)$/$Var(harmonic).}
-\end{block}
-
-\begin{block}{The surprise: the ``optimal'' oracle is \emph{worse}}
-Classical theory says: weight by the exact per-cell variance, which needs the
-relevance $r_i$. Plug in an \emph{estimated} $\hat r_i$ and efficiency
-\textbf{collapses to} \hl{0.002} --- i.e.\ ${\sim}500\times$ \emph{worse} than equal weighting --- because
-$\hat r_i$ is too noisy to be useful on the $60\%$ near-empty cells.
-\smallskip
-
-\hl{So the count-only recipe isn't a shortcut --- it is the robust choice.}
-\end{block}
-
-\begin{block}{\textcolor{accent}{5.}\ Why it works}
-\large
-\cmark\ Harmonic is the \textbf{inverse-variance optimum} of a count-only
-approximation to the per-cell variance (the \emph{surrogate} in our title) ---
-dropping the unknown relevance term is exactly what makes it \emph{deployable}.\\[0.3em]
-\cmark\ \textbf{Provably no worse} than equal weighting on that surrogate variance,
-for \emph{any} counts (Cauchy--Schwarz). On KDD's empirical asymmetric
-surrogate it still improves $4.75\times$.\\[0.3em]
-\cmark\ \textbf{No relevance estimates, no tuning} --- min-count has no such
-guarantee, so we recommend harmonic.
-\end{block}
-
-\begin{block}{\textcolor{accent}{6.}\ Validation \& guardrail}
-Three independent lines of evidence --- one \emph{model-based} (a variance formula applied to real data) and two \emph{ground-truth} (true variance known by simulation):
-\medskip
 \begin{center}
-\evcard{4.5$\times$}{KDD real log}{model-based asymptotic efficiency}\hfill
-\evcard{up to 54\%}{Synthetic ground truth}{43.6--54\% less variance}\hfill
-\evcard{${\sim}40\%$}{Yahoo semi-synthetic}{less variance\\ (95\% CI: 29--51\% less)}
+\begin{minipage}[c]{0.48\linewidth}\centering
+  {\fontsize{64}{68}\selectfont\color{accent}\textbf{4.53$\times$}}\\[0.2em]{\normalsize\color{greytext}impressions needed by equal\\weighting to match harmonic}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.50\linewidth}\raggedright\normalsize
+\cmark\ \textbf{Ranks (2,3):} $\hat R_{2,3}{=}1.73$, \textbf{3.14$\times$ efficiency vs equal} (2.1M pairs).\\[0.15em]
+\cmark\ \textbf{Cap-robust:} efficiency stays \textbf{4.12$\times$} at the 99.99th-percentile cap and \textbf{1.86$\times$} at the 90th.\\[0.15em]
+\cmark\ \textbf{Calibrated:} Plug-in SE matches click-resample SE within \textbf{1--2\%}.
+\end{minipage}
 \end{center}
-\medskip
-Count-only weights pull further ahead of equal weighting as the log gets more
-heavy-tailed --- exactly the production regime.
-\medskip
+\smallskip
+{\small\color{greytext}\textbf{Same answer, far less data.} Equal and harmonic weighting land within ${\sim}2\%$ of each other ($1.68$ vs $1.71$) --- harmonic simply gets there with ${\sim}4.5\times$ fewer impressions. (Under PBM misspecification each weight defines a slightly different average; the gain is precision, not a different ``truth''.)}
+\end{block}
 
-{\small\color{greytext}\textbf{Guardrail.} PBM is only an approximation: across 16{,}132 high-information pairs, the per-cell bias ratios vary ${\approx}3.8\times$ more than click noise alone would explain (Cochran $Q$). So choosing a weight trades precision against \emph{which} average you estimate --- there is no single ``true'' ratio to find.}
+\begin{block}{\textcolor{accent}{5.}\ Theoretical guarantees (why harmonic?)}
+\large
+\cmark\ \textbf{Surrogate IVW optimum (Thm.~2):} Replacing unknown cell relevances $r_i$ with a common factor yields the count-only variance surrogate $V_k(\omega)+V_{k'}(\omega)$, which harmonic minimises.\\[0.2em]
+\cmark\ \textbf{Unconditional Cauchy--Schwarz bound (Thm.~3):} $V_k(\omega^h)+V_{k'}(\omega^h)\le V_k(\mathbf 1)+V_{k'}(\mathbf 1)$ for \emph{any} counts $\{N_k^i,N_{k'}^i\}$ (min-count has no such guarantee). On KDD's asymmetric surrogate $\alpha V_k+\beta V_{k'}$, harmonic still improves \textbf{4.75$\times$}.\\[0.2em]
+\cmark\ \textbf{Why not pair-bootstrap?} Resampling $(q,d)$ pairs perturbs the few high-information cells and entangles efficiency with model fit; the closed-form (delta-method) $\widetilde V$ isolates conditional efficiency.
+\end{block}
+
+\begin{block}{\textcolor{accent}{6.}\ Ground-truth validation \& PBM guardrail}
+Independent ground-truth simulations confirm the delta-method efficiency gains and test robustness under explicit click-model violations:
+\smallskip
+\begin{center}
+\evcard{up to 54\%}{Synthetic PBM}{less variance vs equal;\\up to \textbf{2$\times$ data savings}}\hfill
+\evcard{${\sim}40\%$}{Yahoo-LTR}{less variance (CI: 29--51\%);\\clipping inflates MSE \textbf{458$\times$}}\hfill
+\evcard{3 / 3}{PBM Violations}{lower MSE than \textbf{Equal} under\\\textbf{Trust}, \textbf{Cascade} \& \textbf{Pos-Dep}}
+\end{center}
+\smallskip
+{\small\color{greytext}\textbf{Guardrail (Cochran's $Q$).} Across 16{,}132 high-information KDD pairs ($\ge 5$ clicks/rank), per-cell odds ratios vary \textbf{$3.83\times$} more than binomial click noise ($Q/\mathrm{df}=3.83$), confirming PBM is an approximation and weight choice is a precision vs.\ estimand trade-off.}
 \end{block}
 
 \begin{block}{Bottom line}
 \large
-Swap equal weighting for the \textbf{harmonic count-only weight}:
-\textbf{one line of code}, no new data, \textbf{${\sim}4.5\times$} more
-efficient on the full KDD log (ranks 1 vs 2) --- and \emph{don't} reach for the plug-in
-relevance oracle, which is worse than doing nothing on heavy-tailed logs.
+Replace $\omega_i=1$ with \textbf{$\omega_i = N_k^i N_{k'}^i / (N_k^i + N_{k'}^i)$}:
+\textbf{one line of code}, no extra data, \textbf{${\sim}4.5\times$} higher efficiency on full KDD (ranks 1 vs 2), and lower MSE than equal weighting under all three tested PBM violations --- no relevance labels, no tuning.
 \end{block}
 
 \end{column}
